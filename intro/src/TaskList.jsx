@@ -1,36 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import dailyTasks from './dailyTasks.jsx';
-import { useEffect } from 'react';
 
-export default function TaskList({ completedTasks, onTaskComplete }) {
-  const todayTasks = dailyTasks[0] || []; // Define todayTasks here
-
-  
+export default function TaskList({
+  completedTasks,
+  onTaskComplete,
+  currentDayIndex,
+  setCurrentDayIndex,
+  timeLeft,
+  setTimeLeft,
+  timerStart,
+  setTimerStart,
+}) {
+  const todayTasks = dailyTasks[currentDayIndex] || [];
   const completedTodayTasks = todayTasks.filter((task) => completedTasks[task.id] === true);
-  const alltaskcompleted = todayTasks.length > 0 && completedTodayTasks.length== todayTasks.length
+  const allTasksCompleted = todayTasks.length > 0 && completedTodayTasks.length === todayTasks.length;
 
-
-
-
-
-  const [timeLeft, setTimeLeft] = React.useState(24 * 60 * 60); // 24 hours in seconds
-
+  // Start timer when all tasks are completed
   useEffect(() => {
-    let timer;
-    if (alltaskcompleted) {
-      timer = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000); // Decrease time every second
+    if (allTasksCompleted && !timerStart) {
+      setTimerStart(Date.now());
+      setTimeLeft(24 * 60 * 60); // Reset to full day
     }
-
-    return () => clearInterval(timer); // Cleanup the timer if the component unmounts or dependencies change
-  }, [alltaskcompleted]);
+  }, [allTasksCompleted, timerStart, setTimerStart, setTimeLeft]);
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -41,20 +32,12 @@ export default function TaskList({ completedTasks, onTaskComplete }) {
       .padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    if (timeLeft === 0) {
-      // Increment the index of today's tasks
-      const nextIndex = (dailyTasks.indexOf(todayTasks) + 1) % dailyTasks.length;
-      todayTasks = dailyTasks[nextIndex];
-    }
-  }, [timeLeft]);
-
   return (
     <section className="mt-8">
       <h2 className="text-2xl font-bold text-purple-400 mb-4 tracking-wide [text-shadow:_0_0_10px_rgb(147_51_234_/_80%)]">
         System Quests
       </h2>
-      {alltaskcompleted ? (
+      {allTasksCompleted ? (
         <>
           <p className="text-gray-200 text-center font-mono">Completed all tasks for today</p>
           <p className="text-gray-400 text-center font-mono mt-2">
